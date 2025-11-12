@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DYPCET College ChatBot — Your AI Assistant</title>
+<style>
+:root {
+  --bg-1:#071029;
+  --bg-2:#061428;
+  --accent-1:#00f5c4;
+  --accent-2:#3ae8ff;
+  --muted:rgba(255,255,255,0.65);
+}
+html,body{height:100%;margin:0;font-family:"Inter",Arial,sans-serif;}
+body{
+  background: radial-gradient(1200px 600px at 10% 20%, rgba(58,232,255,0.06), transparent),
+              radial-gradient(800px 400px at 90% 80%, rgba(0,245,196,0.04), transparent),
+              linear-gradient(180deg,var(--bg-1), var(--bg-2));
+  display:flex;align-items:center;justify-content:center;padding:32px;
+  color:#eaf6f5;
+}
+.app{
+  width:980px;max-width:calc(100% - 48px);height:640px;
+  display:grid;grid-template-columns:300px 1fr;gap:20px;align-items:stretch;
+}
+.left{
+  background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:16px;
+  box-shadow:0 10px 30px rgba(2,6,23,0.6);
+}
+.avatar-wrap{display:flex;justify-content:center;margin-top:8px;}
+.avatar{
+  width:140px;height:140px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent-2),var(--accent-1));
+  box-shadow:0 8px 30px rgba(0,245,196,0.12), inset 0 -6px 18px rgba(0,0,0,0.15);
+  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:40px;color:#012;
+  animation: floaty 4s ease-in-out infinite;
+  position:relative;border:4px solid rgba(255,255,255,0.06);
+}
+@keyframes floaty {
+  0%{transform:translateY(0) rotate(-1deg);}
+  50%{transform:translateY(-10px) rotate(1deg);}
+  100%{transform:translateY(0) rotate(-1deg);}
+}
+.bot-name{text-align:center;font-size:1.2rem;font-weight:600;color:#eafaf9;}
+.bot-role{text-align:center;color:var(--muted);font-size:0.9rem;margin-top:-6px;}
+.college-logo{
+  display:flex;justify-content:center;margin-top:8px;
+}
+.college-logo img{
+  width:80px;height:80px;border-radius:50%;border:2px solid rgba(255,255,255,0.1);
+}
+.left .meta{
+  margin-top:6px;padding:12px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border-radius:12px;border:1px solid rgba(255,255,255,0.02);color:var(--muted);
+  font-size:0.93rem;line-height:1.4;
+}
+.left .actions{margin-top:auto;display:flex;gap:10px;align-items:center;justify-content:center;}
+.btn{
+  background: linear-gradient(90deg, rgba(58,232,255,0.12), rgba(0,245,196,0.08));
+  border: 1px solid rgba(58,232,255,0.12);
+  color: #dffdf9; padding:10px 12px; border-radius:10px; cursor:pointer;
+  font-weight:600; transition: transform .16s ease, box-shadow .16s ease; display:inline-flex; gap:8px; align-items:center;
+}
+.btn:hover{ transform: translateY(-4px); box-shadow:0 8px 30px rgba(0,0,0,0.35); }
+.right{
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border-radius:16px;padding:18px;border:1px solid rgba(255,255,255,0.06);
+  display:flex;flex-direction:column;box-shadow:0 14px 40px rgba(2,6,23,0.6);
+}
+.header{display:flex;align-items:center;gap:12px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.03);}
+.header h3{margin:0;font-size:1.05rem;}
+.header p{margin:0;color:var(--muted);font-size:0.9rem;}
+#chat{flex:1;padding:14px;overflow:auto;display:flex;flex-direction:column;gap:12px;margin-top:10px;scroll-behavior:smooth;}
+.bubble{max-width:78%;padding:12px 14px;border-radius:14px;line-height:1.4;animation:bubbleIn .28s ease;box-shadow:0 6px 18px rgba(2,6,23,0.5);}
+@keyframes bubbleIn{from{opacity:0;transform: translateY(6px)} to{opacity:1;transform:none}}
+.bubble.bot{align-self:flex-start;background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.04);color:#e8fdf8;}
+.bubble.user{align-self:flex-end;background:linear-gradient(90deg,#00f5c4,#3ae8ff);color:#001218;font-weight:600;}
+.typing{display:inline-flex;gap:6px;align-items:center;height:18px;}
+.dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.4);opacity:0.6;transform: translateY(0);animation: dotJump 1s infinite;}
+.dot:nth-child(2){animation-delay:0.15s;}
+.dot:nth-child(3){animation-delay:0.3s;}
+@keyframes dotJump{0%{transform:translateY(0);opacity:0.4;}40%{transform:translateY(-6px);opacity:1;}80%{transform:translateY(0);opacity:0.6;}100%{transform:translateY(0);opacity:0.4;}}
+.composer{margin-top:14px;display:flex;gap:10px;align-items:center;}
+.input{flex:1;display:flex;gap:8px;align-items:center;background: rgba(0,0,0,0.25);padding:10px;border-radius:12px;border:1px solid rgba(255,255,255,0.03);}
+.input input{flex:1;border:0;background:transparent;color:#e9fffb;outline:none;font-size:1rem;padding:6px;}
+.mic{width:44px;height:44px;border-radius:10px;background:linear-gradient(180deg,#ff7bd4,#7a9bff);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;cursor:pointer;border:0;transition: transform .12s;}
+.mic.active{box-shadow:0 8px 30px rgba(122,155,255,0.18); transform: translateY(-3px) scale(1.02);}
+.send{background:linear-gradient(90deg,#00f5c4,#3ae8ff);border:0;padding:10px 14px;border-radius:10px;color:#002;cursor:pointer;font-weight:700;transition: transform .12s;}
+.send:hover{transform:translateY(-3px);}
+@media (max-width:880px){.app{grid-template-columns:1fr;height:92vh;width:100%;}.left{order:2;height:auto;}.right{order:1;height:100%;}}
+
+/* OTP Modal */
+#authModal{
+  display:flex;align-items:center;justify-content:center;position:fixed;
+  top:0;left:0;width:100%;height:100%;
+  background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);z-index:30;
+}
+.modal-content{
+  background:linear-gradient(180deg,#0e1b3a,#060e26);
+  color:white;padding:30px;border-radius:18px;text-align:center;width:320px;
+  box-shadow:0 8px 40px rgba(0,245,196,0.25);border:1px solid rgba(255,255,255,0.1);
+}
+.modal-content input{
+  width:85%;padding:10px;margin:10px 0;border:1px solid rgba(255,255,255,0.15);
+  border-radius:10px;background:rgba(255,255,255,0.05);color:white;text-align:center;
+}
+.modal-content button{
+  padding:10px 15px;border-radius:25px;border:none;background:linear-gradient(90deg,#00f5c4,#3ae8ff);
+  color:#001218;margin:5px;font-weight:600;cursor:pointer;
+}
+#otpSection{display:none;}
+</style>
+</head>
+<body>
+
+<!-- OTP LOGIN MODAL -->
+<div id="authModal">
+  <div class="modal-content">
+    <h2>🔐 Login to DYPCET College ChatBot</h2>
+    <div id="mobileSection">
+      <input type="number" id="mobileNumber" placeholder="📱 Enter Mobile Number"/><br>
+      <button onclick="getOTP()">Get OTP</button>
+    </div>
+    <div id="otpSection">
+      <p>✅ OTP sent! Enter below 👇</p>
+      <p id="showOtp" style="font-weight:bold;color:#00f5c4;"></p>
+      <input type="number" id="otpInput" placeholder="🔢 Enter OTP"/><br>
+      <button onclick="verifyOTP()">Verify OTP</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div class="app" id="mainApp" style="display:none;">
+  <div class="left">
+    <div class="college-logo"><img src="https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg" alt="College Logo"></div>
+    <div class="bot-name">D.Y Patil College of Engineering and Technology Kolhapur</div>
+    <div class="bot-role">🎓 DYPCET College ChatBot Assistant</div>
+    <div class="meta">⚡ Quick answers for admissions, courses, fees and etc.<br>🎤 Voice input & typing animation<br>💡 Works offline & no login</div>
+    <div class="actions">
+      <button class="btn" id="demoQuestions">💬 Sample Questions</button>
+      <button class="btn" id="clearChat">🧹 Clear Chat</button>
+    </div>
+  </div>
+  <div class="right">
+    <div class="header">
+      <div>
+        <h3>🤖 DYPCET College ChatBot</h3>
+        <p id="welcomeText">Welcome!</p>
+      </div>
+    </div>
+    <div id="chat">
+      <div class="bubble bot">👋 Hi there! I'm your DYPCET College Assistant. Try asking about 📚 admissions, 💰 fees, 🏠 hostel or other queries.</div>
+    </div>
+    <div class="composer">
+      <div class="input">
+        <input id="userInput" placeholder="Type a message or press 🎤 to speak..." autocomplete="off"/>
+      </div>
+      <button class="mic" id="micBtn">🎤</button>
+      <button class="send" id="sendBtn">Send</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let generatedOTP="", currentUser="";
+function getOTP(){
+  const mobile=document.getElementById("mobileNumber").value.trim();
+  if(mobile.length!==10) return alert("⚠️ Enter a valid 10-digit number!");
+  generatedOTP=Math.floor(1000+Math.random()*9000).toString();
+  document.getElementById("showOtp").textContent="Your OTP: "+generatedOTP;
+  document.getElementById("mobileSection").style.display="none";
+  document.getElementById("otpSection").style.display="block";
+  currentUser=mobile;
+}
+function verifyOTP(){
+  if(document.getElementById("otpInput").value.trim()===generatedOTP){
+    document.getElementById("authModal").style.display="none";
+    document.getElementById("mainApp").style.display="grid";
+    document.getElementById("welcomeText").textContent="👋 Hi "+currentUser+"!";
+    appendBubble("🎉 Welcome "+currentUser+"! How can I assist you today?","bot");
+  } else alert("❌ Incorrect OTP");
+}
+
+const responses={
+  // Greetings
+  "hi": ["👋 Welcome! I'm DYPCET College ChatBot, how can I help you?"],
+  "by": ["👋 Thanks for visiting Our DYPCET CollegeBot!"],
+
+  // Admissions & Eligibility
+  "admission": ["📝 Admissions are open from 01th December to 15th December."],
+  "eligibility": ["✅ Check CET percentile and category eligibility."],
+  "registration": ["🖥️ Register via college portal or admission office."],
+  "registrationfee": ["💰 Registration fee must be paid during enrollment."],
+  "enrollment": ["🖊️ Enrollment done via student portal."],
+
+  // Courses & Programs
+  "courses": ["🎓 B.Tech courses: CS, Data Science, AI & ML, Mechanical, Civil, Chemical, E&TC."],
+  "programs": ["🎓 Programs: B.Tech, M.Tech, Diploma, Certificate courses."],
+  "specializations": ["🧠 Specializations: AI, ML, Cybersecurity, Data Science, Robotics."],
+  "diploma": ["📜 Diploma courses are short-term specialized programs."],
+  "degree": ["🎓 B.Tech/M.Tech degrees issued on completion."],
+  "corecourses": ["📚 Core courses are mandatory for program completion."],
+  "electives": ["📚 Electives offered in every semester for specialization."],
+  "prerequisite": ["📌 Check prerequisite courses before enrollment."],
+  "certificateprogram": ["🏅 Certificate programs available online/offline."],
+  "skilldevelopment": ["💡 Workshops and labs enhance skill development."],
+  "specialprograms": ["⭐ Special programs offered occasionally."],
+
+  // Academic Info
+  "documents": ["📑 Required: 10th & 12th marksheets, ID proof, photos, TC, domicile certificate."],
+  "fees": ["💰 Annual fees: Open ₹127,602 | OBC ₹73,602 | SC/ST ₹3,551 | NT ₹19,000."],
+  "exam": ["📝 Check the exam schedule on the portal."],
+  "timetable": ["📅 Class timetable available on student portal."],
+  "results": ["📊 Results are published on online portal."],
+  "attendance": ["📋 Attendance monitored via online portal."],
+  "grading": ["🧾 Follow grading policy outlined in student handbook."],
+  "transcript": ["📄 Transcripts can be requested from admin office."],
+  "coursefee": ["💰 Course fee details available in finance office."],
+  "tuitionfee": ["💸 Tuition fees must be paid before semester begins."],
+  "labfee": ["🔬 Lab fees included in total course fees."],
+  "materialfee": ["📦 Material fees applicable for some courses."],
+  "credit": ["🎓 Courses follow a credit system."],
+  "gradingpolicy": ["📜 Refer to grading policy document."],
+
+  // Coursework & Assignments
+  "assignments": ["📝 Assignments must be submitted online or to faculty."],
+  "assignmentdeadline": ["⏰ Assignments must be submitted before the deadline."],
+  "coursework": ["📚 Coursework assigned during semester."],
+  "courseworksubmission": ["📤 Submit coursework as per deadlines."],
+  "projects": ["🛠️ Project guidance available from faculty mentors."],
+  "capstoneproject": ["🏗️ Capstone projects conducted in final year."],
+  "projectsubmission": ["📤 Submit projects via portal or faculty."],
+  "labmanual": ["📘 Lab manuals are provided for each practical course."],
+  "labmanualaccess": ["📘 Lab manuals available online or in library."],
+  "experiment": ["🔬 Experiments conducted in lab sessions."],
+  "report": ["📝 Reports must be submitted on time."],
+  "labreport": ["📄 Lab reports must follow the prescribed format."],
+  "seminarreport": ["📄 Submit seminar reports to respective faculty."],
+  "peerreview": ["👥 Peer review is part of assessment in some courses."],
+  "quiz": ["❓ Quizzes scheduled in course timetable."],
+  "quizschedule": ["📅 Quiz schedules are published online."],
+  "midterm": ["📝 Midterm exams conducted as per schedule."],
+  "final": ["🏁 Final exams are conducted at semester end."],
+  "practicalexam": ["🔬 Practical exams conducted in labs."],
+  "viva": ["🗣️ Viva voce conducted for final year projects."],
+  "evaluation": ["📝 Evaluation includes assignments, quizzes, and exams."],
+  "assessment": ["📊 Assessment includes coursework and practicals."],
+  "examdates": ["📅 Exam dates published on portal."],
+  "exampattern": ["📜 Exam pattern details are available online."],
+  "examassessment": ["📊 Exams assessed as per grading rubric."],
+  "examhall": ["🏫 Exam halls allocated per student list."],
+
+  // Faculty & Mentorship
+  "faculty": ["👩‍🏫 Experienced faculty available in all departments."],
+  "mentorship": ["🧑‍🏫 Faculty mentorship program available for students."],
+  "academicadvising": ["📌 Advising available from faculty mentors."],
+  "facultycontact": ["📞 Faculty contact details available on portal."],
+  "facultylecture": ["🎤 Faculty lectures held in hall or online."],
+  "facultyoffice": ["🏢 Faculty offices located in respective departments."],
+  "facultymeeting": ["📅 Faculty meetings as per calendar."],
+  "facultydevelopment": ["📈 Faculty development programs conducted annually."],
+
+  // Research & Learning
+  "research": ["🔬 Research projects and funding available."],
+  "researchproject": ["🛠️ Research projects guided by faculty."],
+  "researchpaper": ["📄 Research papers accessible in journals and library."],
+  "researchseminar": ["🎤 Research seminars conducted by faculty and students."],
+  "researchfund": ["💰 Research funding available through grants."],
+  "thesis": ["📜 Thesis guidance is available for final year students."],
+  "thesisguidance": ["📝 Faculty provides thesis guidance for students."],
+  "thesisdefense": ["🗣️ Final year thesis defense conducted by faculty panel."],
+  "dissertation": ["📄 Dissertation guidelines available on portal."],
+
+  // Online Learning
+  "onlineclasses": ["💻 Online classes conducted via e-learning platform."],
+  "e-learning": ["🌐 E-learning resources available for all courses."],
+  "moocs": ["📖 MOOCs recommended for additional learning."],
+  "learningplatform": ["🖥️ Learning platform provides resources and assignments."],
+  "digitalresources": ["💾 Digital resources accessible via portal."],
+  "e-library": ["📚 E-library provides digital books and journals."],
+
+  // Campus Life & Facilities
+  "hostel": ["🏠 Hostel: ₹12,000 per semester. Single/double occupancy rooms available."],
+  "mess": ["🍽️ Mess: Breakfast, lunch, and dinner with vegetarian & non-veg options."],
+  "canteen": ["☕ Canteen: Snacks and beverages on campus."],
+  "shuttle": ["🚌 Shuttle Service available for students."],
+  "transport": ["🚍 College transport covers major routes."],
+  "library": ["📚 Library available with books, journals, and e-resources."],
+  "recreation": ["🎮 Recreational activities available on campus."],
+  "yoga": ["🧘 Yoga sessions conducted weekly."],
+  "fitness": ["🏋️ Fitness programs offered."],
+  "gym": ["💪 Gym facility available for students."],
+  "swimming": ["🏊 Swimming pool available."],
+
+  // Sports
+  "sports": ["🏅 Various sports facilities available: indoor & outdoor."],
+  "football": ["⚽ Football ground available."],
+  "cricket": ["🏏 Cricket pitch available."],
+  "basketball": ["🏀 Basketball court available."],
+  "volleyball": ["🏐 Volleyball courts available."],
+  "badminton": ["🏸 Badminton courts available."],
+  "indoorgames": ["♟️ Indoor games: Chess, Table Tennis, Carrom."],
+  "outdoorgames": ["⚽🏏 Outdoor games: Football, Cricket, Basketball."],
+  "sportsclub": ["🏆 Sports club organizes competitions & events."],
+  "gymmembership": ["💪 Gym membership available for students."],
+  "swimmingpool": ["🏊 Swimming pool accessible for students."],
+
+  // Clubs & Activities
+  "musicclub": ["🎵 Music club active with practice & competitions."],
+  "danceclub": ["💃 Dance club conducts performances."],
+  "theatreclub": ["🎭 Theatre group organizes plays & workshops."],
+  "artclub": ["🎨 Art club organizes competitions & workshops."],
+  "debateclub": ["🗣️ Debate society organizes debates & quizzes."],
+  "codingclub": ["💻 Coding club and hackathons organized."],
+  "roboticsclub": ["🤖 Robotics club & competitions available."],
+  "photographyclub": ["📸 Photography club active."],
+  "filmclub": ["🎬 Film club organizes screenings & discussions."],
+  "ecoclub": ["🌱 EcoClub for environmental awareness."],
+  "entrepreneurshipclub": ["🚀 Entrepreneurship club supports startups."],
+  "careerclub": ["💼 Career club organizes workshops & guidance."],
+  "socialclub": ["🤝 Social club organizes events & activities."],
+  "volunteergroup": ["🤝 Volunteer group participates in community service."],
+
+  // Events & Festivals
+  "collegefestival": ["🎉 College festival conducted yearly."],
+  "techfest": ["🛠️ Techfest organized for technical competitions."],
+  "culturalfest": ["🎭 Cultural fest organized annually."],
+  "hackathon": ["💻 Hackathon events conducted yearly."],
+  "codingcompetition": ["💻 Coding competitions organized regularly."],
+  "techcompetition": ["🛠️ Technical competitions conducted yearly."],
+  "debatecompetition": ["🗣️ Debate competitions conducted regularly."],
+  "quizcompetition": ["❓ Quiz competitions organized by clubs."],
+  "culturalcompetition": ["🎭 Cultural competitions conducted yearly."],
+  "musiccompetition": ["🎵 Music competitions organized regularly."],
+  "theatrecompetition": ["🎭 Theatre competitions conducted yearly."],
+  "guestlecture": ["🎤 Guest lectures conducted by experts."],
+  "workshopattend": ["🛠️ Students can attend workshops by registering online."],
+  "orientationweek": ["👋 Orientation week conducted for new students."],
+  "alumnimeet": ["🎓 Alumni meet conducted yearly."],
+  // Academic Departments
+"csdepartment": ["💻 Computer Science Department: Focus on programming, AI, ML, and software development."],
+"mechanicaldepartment": ["⚙️ Mechanical Department: Focus on machines, thermodynamics, and robotics."],
+"civildepartment": ["🏗️ Civil Department: Focus on construction, structures, and environment."],
+"etdepartment": ["📡 E&TC Department: Focus on electronics, communication, and embedded systems."],
+"chemicaldepartment": ["⚗️ Chemical Department: Focus on chemical processes, reactions, and materials."],
+"aidmlab": ["🤖 AI & ML Lab: Practical work in artificial intelligence and machine learning."],
+
+// Courses & Programs
+"btech": ["🎓 B.Tech Programs: Core engineering courses with electives and specializations."],
+"mtech": ["🎓 M.Tech Programs: Advanced engineering topics and research opportunities."],
+"diploma": ["📜 Diploma Courses: Short-term specialized programs."],
+"certificatecourse": ["📃 Certificate Programs: Skill-oriented and short-term certifications."],
+"corecourse": ["📘 Core Courses: Mandatory courses for program completion."],
+"electivecourse": ["📝 Elective Courses: Optional courses for specialization."],
+
+// Specializations & Labs
+"ai": ["🤖 Specialization in AI: Artificial intelligence principles and applications."],
+"ml": ["📊 Specialization in ML: Machine learning algorithms and applications."],
+"datascience": ["📈 Specialization in Data Science: Data analysis and predictive modeling."],
+"cybersecurity": ["🛡️ Specialization in Cybersecurity: Protecting systems and networks."],
+"robotics": ["🤖 Specialization in Robotics: Automation and intelligent systems."],
+"researchlab": ["🔬 Research Lab: Conduct experiments, publish papers, and explore innovation."],
+"innovationhub": ["💡 Innovation Hub: Support for startups, projects, and patents."],
+
+// Class & Academic Activities
+"lecture": ["📖 Lectures conducted in classrooms or online."],
+"tutorial": ["📝 Tutorials for problem-solving and concept clarity."],
+"labsession": ["⚗️ Lab Sessions for practical experiments."],
+"projectwork": ["📂 Project Work: Faculty-guided research and development projects."],
+"assignment": ["📝 Assignments for practice and assessment."],
+"seminar": ["🎤 Seminars conducted by faculty and students."],
+"workshop": ["🛠️ Workshops for hands-on skill development."],
+"capstoneproject": ["🏆 Capstone Project: Final-year project integrating multiple disciplines."],
+
+// Study & Learning Resources
+"libraryresources": ["📚 Library with books, journals, and e-resources."],
+"onlineresources": ["💻 Online portals for lecture notes, videos, and e-books."],
+"moocs": ["🌐 MOOCs recommended for additional learning."],
+"studygroup": ["👥 Study Groups: Collaborative learning with peers."],
+"mentorship": ["🧑‍🏫 Mentorship from faculty for academic and career guidance."],
+"tutoring": ["📖 Tutoring sessions for extra academic support."],
+"labmanual": ["📘 Lab Manuals provided for all practical courses."],
+
+// Assessment & Exams
+"quiz": ["❓ Quizzes scheduled for regular assessment."],
+"midterm": ["📝 Midterm Exams conducted per schedule."],
+"finalexam": ["🏁 Final Exams conducted at semester end."],
+"practicalexam": ["⚗️ Practical Exams in laboratories."],
+"viva": ["🎙️ Viva Voce for oral assessment of projects."],
+"grading": ["📊 Grading system based on assignments, exams, and projects."],
+"transcript": ["🗂️ Academic Transcript available from admin office."],
+"coursefeedback": ["📝 Provide course feedback through the online portal."],
+
+// Research & Publications
+"researchproject": ["🔬 Research Projects guided by faculty."],
+"thesisguidance": ["📄 Thesis guidance available for final-year students."],
+"dissertation": ["📜 Dissertation guidelines provided in the portal."],
+"journalaccess": ["📖 Access to journals via e-library."],
+"academicseminar": ["🎤 Academic Seminars organized regularly for knowledge sharing."],
+"researchfund": ["💰 Funding available for research projects through grants."],
+  "bye":["👋 Goodbye! Have a great day at DYPCET!"]
+};
+const chat=document.getElementById('chat'),userInput=document.getElementById('userInput');
+function appendBubble(text,who='bot'){
+  const el=document.createElement('div');
+  el.className='bubble '+(who==='user'?'user':'bot');
+  el.textContent=text; chat.appendChild(el); chat.scrollTop=chat.scrollHeight;
+}
+function showTyping(){
+  const wrap=document.createElement('div');wrap.className='bubble bot';
+  const typing=document.createElement('div');typing.className='typing';
+  typing.innerHTML='<span class="dot"></span><span class="dot"></span><span class="dot"></span>';
+  wrap.appendChild(typing); chat.appendChild(wrap); chat.scrollTop=chat.scrollHeight;
+  return ()=>wrap.remove();
+}
+function findResponse(txt){
+  txt=txt.toLowerCase();
+  for(const k in responses) if(txt.includes(k)) return responses[k][0];
+  return "🤔 I didn’t get that. Try asking about 🏫 admissions, 📜 documents, or 🏠 hostel.";
+}
+function botReply(t){
+  const stop=showTyping();
+  setTimeout(()=>{stop();appendBubble("CollegeBot: "+findResponse(t),'bot');},700+Math.min(1200,t.length*30));
+}
+function sendMessage(){
+  const text=userInput.value.trim(); if(!text)return;
+  appendBubble("You: "+text,'user'); userInput.value='';
+  botReply(text);
+}
+document.getElementById('sendBtn').onclick=sendMessage;
+userInput.addEventListener('keydown',e=>{if(e.key==='Enter')sendMessage();});
+document.getElementById('demoQuestions').onclick=()=>{
+  const q=["Tell me about admission","What are the fees?","Do you have hostel?","What courses do you offer?"];
+  const t=q[Math.floor(Math.random()*q.length)];
+  appendBubble("You: "+t,'user'); botReply(t);
+};
+document.getElementById('clearChat').onclick=()=>{
+  chat.innerHTML=''; appendBubble("👋 Hi again! Ask me about 🎓 courses, 💰 fees, or 🏠 hostel.","bot");
+};
+
+// Voice input
+let recognition=null,listening=false;
+if('webkitSpeechRecognition' in window || 'SpeechRecognition' in window){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  recognition=new SR(); recognition.lang='en-IN';
+  recognition.onresult=e=>{
+    const t=e.results[0][0].transcript;
+    appendBubble("You (voice): "+t,'user'); botReply(t);
+  };
+  recognition.onstart=()=>{listening=true;micBtn.classList.add('active');micBtn.textContent='🎙️';};
+  recognition.onend=()=>{listening=false;micBtn.classList.remove('active');micBtn.textContent='🎤';};
+  recognition.onerror=()=>{appendBubble("CollegeBot: 🔇 Couldn't hear you, please try again.","bot");};
+}
+const micBtn=document.getElementById('micBtn');
+micBtn.onclick=()=>{if(!recognition)return appendBubble("⚠️ Voice not supported on this browser.","bot");
+  if(listening)recognition.stop();else recognition.start();
+};
+</script>
+</body>
+</html>
